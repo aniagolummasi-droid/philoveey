@@ -1,5 +1,7 @@
 import Admin from '../pages/Admin'
 import Dashboard from '../pages/Dashboard'
+import AdminLogin from '../pages/AdminLogin'
+import AdminRegister from '../pages/AdminRegister'
 import { useEffect, useState } from 'react'
 import Cart from '../pages/Cart'
 import Checkout from '../pages/Checkout'
@@ -35,6 +37,8 @@ function AppRoutes() {
   const routeParams = new URLSearchParams(queryString)
 
   if (routeName === 'shop') return <Shop initialCategory={routeParams.get('category') || ''} />
+  if (route === 'philo-admin-secure-login') return <AdminLogin />
+  if (route === 'philo-admin-register') return <AdminRegister />
   if (route === 'admin') return <ProtectedRoute adminOnly><Admin /></ProtectedRoute>
   if (route === 'cart') return <Cart />
   if (route === 'checkout') return <Checkout />

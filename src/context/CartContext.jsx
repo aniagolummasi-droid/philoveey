@@ -22,6 +22,27 @@ function normalizeCartItems(cart) {
     })
 }
 
+function mergeCartItems(localItems, serverItems) {
+  const merged = new Map()
+
+  for (const item of [...serverItems, ...localItems]) {
+    const productId = getProductId(item)
+    const existing = merged.get(productId)
+
+    if (existing) {
+      merged.set(productId, {
+        ...existing,
+        quantity: existing.quantity + (item.quantity || 0),
+      })
+      continue
+    }
+
+    merged.set(productId, { ...item })
+  }
+
+  return Array.from(merged.values())
+}
+
 function getProductId(product) {
   return product.backendId || product._id || product.id
 }
@@ -61,7 +82,17 @@ export function CartProvider({ children }) {
         }
 
         const serverCart = await cartService.get()
-        if (active) setItems(normalizeCartItems(serverCart))
+        const normalizedServerCart = normalizeCartItems(serverCart)
+
+        if (active) {
+          setItems((currentItems) => {
+            if (normalizedServerCart.length === 0 && currentItems.length > 0) {
+              return currentItems
+            }
+
+            return mergeCartItems(currentItems, normalizedServerCart)
+          })
+        }
       } catch (syncError) {
         if (active) setError(syncError)
       } finally {

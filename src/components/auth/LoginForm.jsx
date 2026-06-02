@@ -22,7 +22,8 @@ function LoginForm() {
       })
 
       setUser(user)
-      const nextRoute = localStorage.getItem('philoveey-post-login-route') || '#profile'
+      const defaultRoute = user.role === 'admin' ? '#admin' : '#profile'
+      const nextRoute = localStorage.getItem('philoveey-post-login-route') || defaultRoute
       localStorage.removeItem('philoveey-post-login-route')
       window.location.hash = nextRoute
     } catch (submitError) {

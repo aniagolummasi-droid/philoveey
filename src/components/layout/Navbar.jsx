@@ -22,6 +22,7 @@ function Navbar() {
   const { itemCount } = useCart()
   const { user } = useAuth()
   const [activeCategory, setActiveCategory] = useState(getActiveCategory)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleHashChange = () => setActiveCategory(getActiveCategory())
@@ -40,7 +41,7 @@ function Navbar() {
           <small>Handmade Footwear</small>
         </a>
 
-        <nav className="main-nav" aria-label="Primary navigation">
+        <nav className={`main-nav ${menuOpen ? 'open' : ''}`} aria-label="Primary navigation">
           <a href="#home">Home</a>
           <a href="#shop">Shop</a>
           <div className="nav-dropdown">
@@ -75,7 +76,12 @@ function Navbar() {
             <FiShoppingBag />
             <span>{itemCount}</span>
           </a>
-          <button type="button" className="menu-button" aria-label="Menu">
+          <button
+            type="button"
+            className="menu-button"
+            aria-label="Menu"
+            onClick={() => setMenuOpen((v) => !v)}
+          >
             <FiMenu />
           </button>
         </div>
