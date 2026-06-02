@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
+import { useCart } from '../hooks/useCart'
 import { paymentService } from '../services/paymentService'
 
 function getPaymentReference() {
-  const searchReference = new URLSearchParams(window.location.search).get('reference')
+  const searchParams = new URLSearchParams(window.location.search)
+  const searchReference = searchParams.get('reference') || searchParams.get('trxref')
   const hashQuery = window.location.hash.split('?')[1]
-  const hashReference = hashQuery ? new URLSearchParams(hashQuery).get('reference') : null
+  const hashReference = hashQuery ? new URLSearchParams(hashQuery).get('reference') || new URLSearchParams(hashQuery).get('trxref') : null
 
   return searchReference || hashReference
 }
 
 function PaymentStatus() {
+  const { clearCart } = useCart()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('')
@@ -27,6 +30,9 @@ function PaymentStatus() {
       .verify(reference)
       .then(({ order }) => {
         setStatus(`Payment ${order.paymentStatus}. Order status: ${order.orderStatus}.`)
+        if (order.paymentStatus === 'paid') {
+          clearCart()
+        }
       })
       .catch((paymentError) => setError(paymentError.message))
       .finally(() => setLoading(false))
