@@ -29,8 +29,8 @@ function Footer() {
       </div>
       <div>
         <h2>Contact Us</h2>
-        <p>+234 901 234 5678</p>
-        <p>hello@philoveey.com</p>
+        <p>+234 9033898769</p>
+        <p>PhiloVeeyStore@gmail.com</p>
         <p>
           <FiMapPin aria-hidden="true" /> Lagos, Nigeria
         </p>
