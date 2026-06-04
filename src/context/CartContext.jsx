@@ -56,7 +56,25 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState(() => {
     const savedItems = localStorage.getItem('philoveey-cart')
 
-    return savedItems ? JSON.parse(savedItems) : []
+    try {
+      const parsed = savedItems ? JSON.parse(savedItems) : []
+
+      // Deduplicate local items by product id and sum quantities
+      const merged = parsed.reduce((map, item) => {
+        const id = getProductId(item)
+        const existing = map.get(id)
+        if (existing) {
+          existing.quantity = (existing.quantity || 0) + (item.quantity || 0)
+        } else {
+          map.set(id, { ...item })
+        }
+        return map
+      }, new Map())
+
+      return Array.from(merged.values())
+    } catch (e) {
+      return []
+    }
   })
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState(null)
@@ -75,24 +93,41 @@ export function CartProvider({ children }) {
       setError(null)
 
       try {
-        const validLocalItems = items.filter((item) => isMongoId(getProductId(item)))
+          // Fetch server cart first
+          const serverCart = await cartService.get()
+          const normalizedServerCart = normalizeCartItems(serverCart)
 
-        for (const item of validLocalItems) {
-          await cartService.add(getProductId(item), item.quantity)
-        }
+          // For each local item, if it's not present on server add it; if present but different quantity, update it
+          const localValid = items.filter((item) => isMongoId(getProductId(item)))
 
-        const serverCart = await cartService.get()
-        const normalizedServerCart = normalizeCartItems(serverCart)
+          for (const localItem of localValid) {
+            const prodId = getProductId(localItem)
+            const serverMatch = normalizedServerCart.find((s) => getProductId(s) === prodId)
 
-        if (active) {
-          setItems((currentItems) => {
-            if (normalizedServerCart.length === 0 && currentItems.length > 0) {
-              return currentItems
+            if (!serverMatch) {
+              await cartService.add(prodId, localItem.quantity || 1)
+              continue
             }
 
-            return mergeCartItems(currentItems, normalizedServerCart)
-          })
-        }
+            // if quantities differ, update server to match local (favor client intent)
+            if ((serverMatch.quantity || 0) !== (localItem.quantity || 0)) {
+              await cartService.update(prodId, localItem.quantity || 1)
+            }
+          }
+
+          // Re-fetch server cart after syncing
+          const refreshed = await cartService.get()
+          const normalizedRefreshed = normalizeCartItems(refreshed)
+
+          if (active) {
+            setItems((currentItems) => {
+              if (normalizedRefreshed.length === 0 && currentItems.length > 0) {
+                return currentItems
+              }
+
+              return mergeCartItems(currentItems, normalizedRefreshed)
+            })
+          }
       } catch (syncError) {
         if (active) setError(syncError)
       } finally {
