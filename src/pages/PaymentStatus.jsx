@@ -16,6 +16,7 @@ function PaymentStatus() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('')
+  const [emailMessage, setEmailMessage] = useState('')
 
   useEffect(() => {
     const reference = getPaymentReference()
@@ -30,20 +31,29 @@ function PaymentStatus() {
       .verify(reference)
       .then(({ order }) => {
         setStatus(`Payment ${order.paymentStatus}. Order status: ${order.orderStatus}.`)
+
         if (order.paymentStatus === 'paid') {
           clearCart()
+          setEmailMessage(
+            'Your cart has been emptied. A confirmation email is being sent to your inbox.',
+          )
         }
       })
       .catch((paymentError) => setError(paymentError.message))
       .finally(() => setLoading(false))
-  }, [])
+  }, [clearCart])
 
   return (
     <section className="page-section">
       <h1>Payment Status</h1>
       {loading ? <p>Verifying payment...</p> : null}
       {error ? <p className="form-message error">{error}</p> : null}
-      {status ? <p className="form-message success">{status}</p> : null}
+      {status ? (
+        <div className="status-card">
+          <p className="form-message success">{status}</p>
+          {emailMessage ? <p className="form-message info">{emailMessage}</p> : null}
+        </div>
+      ) : null}
       <a className="button primary compact" href="#orders">
         View Orders
       </a>
