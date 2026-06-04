@@ -32,7 +32,8 @@ function mergeCartItems(localItems, serverItems) {
     if (existing) {
       merged.set(productId, {
         ...existing,
-        quantity: existing.quantity + (item.quantity || 0),
+        ...item,
+        quantity: item.quantity ?? existing.quantity,
       })
       continue
     }
