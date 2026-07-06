@@ -60,6 +60,7 @@ function Navbar() {
               ))}
             </div>
           </div>
+          {user ? <a href="#profile">Profile</a> : <a href="#login">Login</a>}
           <a href="#register">Register With Us</a>
           <a href="#about">About Us</a>
           <a href="#contact">Contact</a>

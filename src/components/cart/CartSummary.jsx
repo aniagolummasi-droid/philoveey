@@ -11,11 +11,15 @@ function CartSummary({ total = 0 }) {
     }
   }
 
+  const deliveryFeeNotice = total < 25000
+    ? 'Orders below N25,000 incur a delivery fee of N2,000 at checkout.'
+    : 'You qualify for free delivery.'
+
   return (
     <aside className="cart-summary">
       <h2>Order Summary</h2>
       <p>Subtotal: {formatCurrency(total)}</p>
-      <p>Delivery calculated after confirmation.</p>
+      <p className="form-message info">{deliveryFeeNotice}</p>
       <a
         className="button primary compact"
         href={user?.token ? '#checkout' : '#register'}
